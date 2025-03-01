@@ -61,36 +61,59 @@
         const tanggalHarian = document.getElementById("tanggalHarian");
         const filterTanggal = document.getElementById("filterTanggal");
         let dataTadarus = JSON.parse(localStorage.getItem("tadarus")) || [];
+        let chartInstance = null; // Simpan referensi ke chart
 
+        // Fungsi untuk menyimpan data tanpa duplikasi waktu salat
         form.addEventListener("submit", function(event) {
             event.preventDefault();
             const waktu = document.getElementById("waktuSalat").value;
             const jumlah = parseInt(document.getElementById("jumlahHalaman").value);
-            const today = new Date().toISOString().split("T")[0];
-            dataTadarus.push({ tanggal: today, waktu, jumlah });
+            const today = filterTanggal.value || new Date().toISOString().split("T")[0];
+
+            // Cek apakah data untuk waktu salat tersebut sudah ada
+            let dataHariIni = dataTadarus.filter(item => item.tanggal === today);
+            let existingEntry = dataHariIni.find(item => item.waktu === waktu);
+
+            if (existingEntry) {
+                // Jika sudah ada, update jumlah halaman
+                existingEntry.jumlah = jumlah;
+            } else {
+                // Jika belum ada, tambahkan data baru
+                dataTadarus.push({ tanggal: today, waktu, jumlah });
+            }
+
             localStorage.setItem("tadarus", JSON.stringify(dataTadarus));
             tampilkanData(today);
         });
 
+        // Event listener untuk filter tanggal
         filterTanggal.addEventListener("change", function() {
             tampilkanData(filterTanggal.value);
         });
 
+        // Fungsi untuk menampilkan data harian berdasarkan tanggal
         function tampilkanData(tanggal) {
             tableBody.innerHTML = "";
             let total = 0;
             tanggalHarian.innerText = `Tanggal: ${tanggal}`;
+
             let dataHariIni = dataTadarus.filter(item => item.tanggal === tanggal);
 
             dataHariIni.forEach((item) => {
                 total += item.jumlah;
                 tableBody.innerHTML += `<tr><td>${item.waktu}</td><td>${item.jumlah}</td></tr>`;
             });
+
             updateChart(total);
         }
 
+        // Fungsi untuk memperbarui grafik dengan data baru
         function updateChart(total) {
-            new Chart(ctx, {
+            if (chartInstance) {
+                chartInstance.destroy(); // Hapus chart lama sebelum membuat yang baru
+            }
+
+            chartInstance = new Chart(ctx, {
                 type: "bar",
                 data: {
                     labels: ["Target 1 Juz"],
@@ -102,7 +125,8 @@
                 }
             });
         }
-        
+
+        // Set tanggal awal ke hari ini dan tampilkan data
         const today = new Date().toISOString().split("T")[0];
         filterTanggal.value = today;
         tampilkanData(today);
