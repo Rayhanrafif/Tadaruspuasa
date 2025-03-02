@@ -44,11 +44,14 @@
                     <tr>
                         <th>Waktu Salat</th>
                         <th>Jumlah Halaman</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="rekapTable"></tbody>
             </table>
         </div>
+        <p class="text-center fw-bold" id="totalHalaman"></p>
+        <button id="resetData" class="btn btn-danger w-100 mt-2">Reset Semua Data</button>
         
         <h3 class="mt-4 text-center">Grafik Progres</h3>
         <canvas id="progressChart" class="mt-3"></canvas>
@@ -60,25 +63,23 @@
         const ctx = document.getElementById("progressChart").getContext("2d");
         const tanggalHarian = document.getElementById("tanggalHarian");
         const filterTanggal = document.getElementById("filterTanggal");
+        const totalHalamanText = document.getElementById("totalHalaman");
+        const resetButton = document.getElementById("resetData");
         let dataTadarus = JSON.parse(localStorage.getItem("tadarus")) || [];
-        let chartInstance = null; // Simpan referensi ke chart
+        let chartInstance = null;
 
-        // Fungsi untuk menyimpan data tanpa duplikasi waktu salat
         form.addEventListener("submit", function(event) {
             event.preventDefault();
             const waktu = document.getElementById("waktuSalat").value;
             const jumlah = parseInt(document.getElementById("jumlahHalaman").value);
             const today = filterTanggal.value || new Date().toISOString().split("T")[0];
 
-            // Cek apakah data untuk waktu salat tersebut sudah ada
             let dataHariIni = dataTadarus.filter(item => item.tanggal === today);
             let existingEntry = dataHariIni.find(item => item.waktu === waktu);
 
             if (existingEntry) {
-                // Jika sudah ada, update jumlah halaman
                 existingEntry.jumlah = jumlah;
             } else {
-                // Jika belum ada, tambahkan data baru
                 dataTadarus.push({ tanggal: today, waktu, jumlah });
             }
 
@@ -86,33 +87,39 @@
             tampilkanData(today);
         });
 
-        // Event listener untuk filter tanggal
         filterTanggal.addEventListener("change", function() {
             tampilkanData(filterTanggal.value);
         });
 
-        // Fungsi untuk menampilkan data harian berdasarkan tanggal
         function tampilkanData(tanggal) {
             tableBody.innerHTML = "";
             let total = 0;
             tanggalHarian.innerText = `Tanggal: ${tanggal}`;
-
             let dataHariIni = dataTadarus.filter(item => item.tanggal === tanggal);
 
-            dataHariIni.forEach((item) => {
+            dataHariIni.forEach((item, index) => {
                 total += item.jumlah;
-                tableBody.innerHTML += `<tr><td>${item.waktu}</td><td>${item.jumlah}</td></tr>`;
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${item.waktu}</td>
+                        <td>${item.jumlah}</td>
+                        <td><button class='btn btn-danger btn-sm' onclick='hapusData(${index}, "${tanggal}")'>Hapus</button></td>
+                    </tr>`;
             });
-
+            totalHalamanText.innerText = `Total Halaman: ${total} (Sisa ${Math.max(0, 20 - total)} halaman untuk 1 juz)`;
             updateChart(total);
         }
 
-        // Fungsi untuk memperbarui grafik dengan data baru
+        function hapusData(index, tanggal) {
+            dataTadarus = dataTadarus.filter((item, i) => !(i === index && item.tanggal === tanggal));
+            localStorage.setItem("tadarus", JSON.stringify(dataTadarus));
+            tampilkanData(tanggal);
+        }
+
         function updateChart(total) {
             if (chartInstance) {
-                chartInstance.destroy(); // Hapus chart lama sebelum membuat yang baru
+                chartInstance.destroy();
             }
-
             chartInstance = new Chart(ctx, {
                 type: "bar",
                 data: {
@@ -122,11 +129,23 @@
                         data: [total],
                         backgroundColor: total >= 20 ? "green" : "orange"
                     }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 20 }
+                    }
                 }
             });
         }
 
-        // Set tanggal awal ke hari ini dan tampilkan data
+        resetButton.addEventListener("click", function() {
+            if (confirm("Apakah Anda yakin ingin menghapus semua data?")) {
+                localStorage.removeItem("tadarus");
+                dataTadarus = [];
+                tampilkanData(filterTanggal.value);
+            }
+        });
+
         const today = new Date().toISOString().split("T")[0];
         filterTanggal.value = today;
         tampilkanData(today);
