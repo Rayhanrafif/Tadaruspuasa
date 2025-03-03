@@ -223,6 +223,18 @@
         tampilkanData(today);
     </script>
 
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.onload = function () {
+            Swal.fire({
+                title: "Selamat Datang!",
+                html: "<b>Selamat datang di Tadarus Alquran! </b><br><br><small> by [Rayhan]</small>",
+                icon: "success",
+                confirmButtonText: "OK"
+            });
+        };
+    </script>
+
         <script>
         function toggleSidebar() {
             let sidebar = document.getElementById("sidebar");
