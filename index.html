@@ -24,10 +24,68 @@
     <style>
         body { font-family: Arial, sans-serif; }
         .container { max-width: 600px; margin: auto; }
+
+                    /* Styling Sidebar */
+            .sidebar {
+                width: 250px;
+                height: 100vh;
+                position: fixed;
+                left: -250px;
+                top: 0;
+                background: #343a40;
+                padding-top: 20px;
+                transition: all 0.3s;
+            }
+    
+            .sidebar a {
+                padding: 10px 20px;
+                display: block;
+                color: white;
+                text-decoration: none;
+                font-size: 18px;
+            }
+    
+            .sidebar a:hover {
+                background: #495057;
+            }
+    
+            .sidebar .close-btn {
+                position: absolute;
+                top: 10px;
+                right: 20px;
+                font-size: 24px;
+                cursor: pointer;
+            }
+    
+            .open-sidebar {
+                left: 0;
+            }
+    
+            /* Styling untuk konten */
+            .content {
+                margin-left: 0;
+                transition: margin-left 0.3s;
+                padding: 20px;
+            }
+    
+            .content.shift {
+                margin-left: 250px;
+            }
     </style>
 </head>
 <body>
     <div class="container mt-4">
+                <button class="btn btn-primary m-3" onclick="toggleSidebar()">☰ Menu</button>
+
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar">
+            <span class="close-btn" onclick="toggleSidebar()">&times;</span>
+            <a href="https://rayhanrafif.github.io/Tadaruspuasa/"><i class="fas fa-mosque"></i> Tadarus Alquran</a>
+            <a href="https://rayhanrafif.github.io/HafalanQuran/"><i class="fas fa-book-open"></i> Catatan Hafalan
+                Surah</a>
+            <a href="https://rayhanrafif.github.io/TPA/"><i class="fas fa-quran"></i> Catatan Bacaan</a>
+            <a href="#"><i class="fas fa-book"></i> Laporan</a>
+        </div>
         <h2 class="text-center">Rekapitulasi Tadarus Ramadan</h2>
         <form id="tadarusForm" class="mt-3">
             <div class="mb-3">
@@ -163,6 +221,21 @@
         const today = new Date().toISOString().split("T")[0];
         filterTanggal.value = today;
         tampilkanData(today);
+    </script>
+
+        <script>
+        function toggleSidebar() {
+            let sidebar = document.getElementById("sidebar");
+            let content = document.getElementById("content");
+
+            if (sidebar.classList.contains("open-sidebar")) {
+                sidebar.classList.remove("open-sidebar");
+                content.classList.remove("shift");
+            } else {
+                sidebar.classList.add("open-sidebar");
+                content.classList.add("shift");
+            }
+        }
     </script>
 </body>
 </html>
